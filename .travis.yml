@@ -1,0 +1,7 @@
+sudo: false
+language: go
+go_import_path: github.com/cofyc/markdown-toc
+install: true
+script:
+  - make test
+  - make
