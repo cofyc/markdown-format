@@ -1,6 +1,6 @@
 sudo: false
 language: go
-go_import_path: github.com/cofyc/markdown-toc
+go_import_path: github.com/cofyc/markdown-format
 install: true
 script:
   - make test

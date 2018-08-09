@@ -1,6 +1,6 @@
 
 all:
-	go build -o markdown-toc github.com/cofyc/markdown-toc/cmd/markdown-toc
+	go build -o markdown-format github.com/cofyc/markdown-format/cmd/markdown-format
 
 test:
-	go test -timeout 5m github.com/cofyc/markdown-toc/...
+	go test -timeout 5m github.com/cofyc/markdown-format/...
