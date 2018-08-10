@@ -6,6 +6,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/golang/glog"
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/ast"
 )
@@ -41,83 +42,87 @@ func (f *Renderer) writerWrapper(w io.Writer) io.Writer {
 
 func (r *Renderer) RenderNode(w io.Writer, node ast.Node, entering bool) ast.WalkStatus {
 	w = r.writerWrapper(w)
-	fmt.Printf("%T (%v): %v\n", node, entering, node)
+	glog.V(4).Infof("%T (%v): %+v\n", node, entering, node)
 	switch node := node.(type) {
 	case *ast.Document:
 		r.document(w, node, entering)
 	case *ast.Softbreak:
-		// TODO
+		r.unsupported(node)
 	case *ast.Hardbreak:
 		r.hardBreak(w, node)
 	case *ast.Emph:
-		// TODO
+		r.unsupported(node)
 	case *ast.Strong:
-		// TODO
+		r.unsupported(node)
 	case *ast.Del:
-		// TODO
+		r.unsupported(node)
 	case *ast.BlockQuote:
-		// TODO
+		r.unsupported(node)
 	case *ast.Aside:
-		// TODO
+		r.unsupported(node)
 	case *ast.Link:
-		// TODO
+		r.link(w, node, entering)
 	case *ast.CrossReference:
-		// TODO
+		r.unsupported(node)
 	case *ast.Citation:
-		// TODO
+		r.unsupported(node)
 	case *ast.Image:
-		// TODO
+		r.unsupported(node)
 	case *ast.Code:
-		// TODO
+		r.unsupported(node)
 	case *ast.CodeBlock:
-		// TODO
+		r.codeBlock(w, node, entering)
 	case *ast.Caption:
-		// TODO
+		r.unsupported(node)
 	case *ast.CaptionFigure:
-		// TODO
+		r.unsupported(node)
 	case *ast.Paragraph:
 		r.paragraph(w, node, entering)
 	case *ast.HTMLSpan:
-		// TODO
+		r.unsupported(node)
 	case *ast.HTMLBlock:
-		// TODO
+		r.unsupported(node)
 	case *ast.Heading:
 		r.heading(w, node, entering)
 	case *ast.Text:
 		r.text(w, node)
 	case *ast.HorizontalRule:
-		// TODO
+		r.unsupported(node)
 	case *ast.List:
 		r.list(w, node, entering)
 	case *ast.ListItem:
 		r.listItem(w, node, entering)
 	case *ast.Table:
-		// TODO
+		r.unsupported(node)
 	case *ast.TableCell:
-		// TODO
+		r.unsupported(node)
 	case *ast.TableHead:
-		// TODO
+		r.unsupported(node)
 	case *ast.TableBody:
-		// TODO
+		r.unsupported(node)
 	case *ast.TableRow:
-		// TODO
+		r.unsupported(node)
 	case *ast.Math:
-		// TODO
+		r.unsupported(node)
 	case *ast.MathBlock:
-		// TODO
+		r.unsupported(node)
 	case *ast.DocumentMatter:
-		// TODO
+		r.unsupported(node)
 	default:
-		panic(fmt.Sprintf("Unknown node %T", node))
+		panic(fmt.Sprintf("Unknown node %T: %+v", node, node))
 	}
 	return ast.GoToNext
 }
 
-func (r *Renderer) RenderHeader(w io.Writer, ast ast.Node) {
+func (r *Renderer) unsupported(node ast.Node) {
+	panic(fmt.Sprintf("Unsupported node %T: %+v", node, node))
+}
+
+func (r *Renderer) RenderHeader(w io.Writer, node ast.Node) {
 	return
 }
 
-func (r *Renderer) RenderFooter(w io.Writer, ast ast.Node) {
+func (r *Renderer) RenderFooter(w io.Writer, node ast.Node) {
 	return
 }
 
@@ -182,6 +187,23 @@ func (r *Renderer) paragraph(w io.Writer, paragraph *ast.Paragraph, entering boo
 
 func (r *Renderer) hardBreak(w io.Writer, node *ast.Hardbreak) {
 	w.Write([]byte("\n"))
+}
+
+func (r *Renderer) link(w io.Writer, link *ast.Link, entering bool) {
+	if entering {
+		w.Write([]byte("["))
+	} else {
+		fmt.Fprintf(w, "](%s)", link.Destination)
+	}
+}
+
+func (r *Renderer) codeBlock(w io.Writer, codeBlock *ast.CodeBlock, entering bool) {
+	if entering {
+		r.openSection(w)
+		fmt.Fprintf(w, "```%s\n", codeBlock.Info)
+		w.Write(codeBlock.Literal)
+		fmt.Fprintf(w, "```\n")
+	}
 }
 
 func NewRenderer() markdown.Renderer {
